@@ -1,0 +1,2224 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ふせんメモ</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ふせんメモ">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="rgb(47,93,76)">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'><rect width='128' height='128' rx='28' fill='rgb(47,93,76)'/><g transform='translate(66 68) rotate(-8)'><rect x='-30' y='-34' width='60' height='60' rx='6' fill='rgb(234,217,142)'/></g><g transform='translate(62 62) rotate(6)'><rect x='-30' y='-34' width='60' height='60' rx='6' fill='rgb(247,247,242)'/></g></svg>">
+<link rel="manifest" href="data:application/manifest+json;charset=utf-8,{&quot;name&quot;:&quot;ふせんメモ&quot;,&quot;short_name&quot;:&quot;ふせんメモ&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;rgb(231,234,225)&quot;,&quot;theme_color&quot;:&quot;rgb(47,93,76)&quot;}">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap">
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --bg:#E7EAE1;
+  --dot:#D3D8C9;
+  --surface:#F7F7F2;
+  --surface-2:#FFFFFF;
+  --border:#D8DACB;
+  --border-soft:#E3E5D8;
+  --ink:#263029;
+  --ink-soft:#5E6B5C;
+  --ink-faint:#93A08D;
+  --accent:#2F5D4C;
+  --accent-ink:#F4FBF3;
+  --shadow-color:30,38,26;
+
+  --note-blue-bg:#B9D3EA;   --note-blue-ink:#1F3A52;
+  --note-purple-bg:#CDBEE0; --note-purple-ink:#3A2C4D;
+  --note-green-bg:#AED9B4;  --note-green-ink:#22432A;
+  --note-yellow-bg:#EAD98E; --note-yellow-ink:#4A3C10;
+  --note-pink-bg:#E8B9C9;   --note-pink-ink:#4A1F30;
+  --note-orange-bg:#EAC49A; --note-orange-ink:#4A2E0C;
+
+  --theme-0:#3E7C72; --theme-1:#5A6BB0; --theme-2:#B5573A;
+  --theme-3:#8A8A3D; --theme-4:#8A4B7A; --theme-5:#5C6570;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#161C17;
+    --dot:#222B22;
+    --surface:#1E251F;
+    --surface-2:#242C24;
+    --border:#333E33;
+    --border-soft:#2B342B;
+    --ink:#E7EEE4;
+    --ink-soft:#A9B6A5;
+    --ink-faint:#6C786A;
+    --accent:#5FAE8C;
+    --accent-ink:#0C1712;
+    --shadow-color:0,0,0;
+
+    --note-blue-bg:#5D84A3;   --note-blue-ink:#EAF3FA;
+    --note-purple-bg:#7C6A97; --note-purple-ink:#F2ECF8;
+    --note-green-bg:#5C8F63;  --note-green-ink:#EAF6EA;
+    --note-yellow-bg:#B79F52; --note-yellow-ink:#362B08;
+    --note-pink-bg:#A55E78;   --note-pink-ink:#F8E9EE;
+    --note-orange-bg:#B27A44; --note-orange-ink:#341F09;
+
+    --theme-0:#5AA398; --theme-1:#7C8CD1; --theme-2:#D07557;
+    --theme-3:#ABAB5C; --theme-4:#AD6B9C; --theme-5:#828C97;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#161C17;
+  --dot:#222B22;
+  --surface:#1E251F;
+  --surface-2:#242C24;
+  --border:#333E33;
+  --border-soft:#2B342B;
+  --ink:#E7EEE4;
+  --ink-soft:#A9B6A5;
+  --ink-faint:#6C786A;
+  --accent:#5FAE8C;
+  --accent-ink:#0C1712;
+  --shadow-color:0,0,0;
+
+  --note-blue-bg:#5D84A3;   --note-blue-ink:#EAF3FA;
+  --note-purple-bg:#7C6A97; --note-purple-ink:#F2ECF8;
+  --note-green-bg:#5C8F63;  --note-green-ink:#EAF6EA;
+  --note-yellow-bg:#B79F52; --note-yellow-ink:#362B08;
+  --note-pink-bg:#A55E78;   --note-pink-ink:#F8E9EE;
+  --note-orange-bg:#B27A44; --note-orange-ink:#341F09;
+
+  --theme-0:#5AA398; --theme-1:#7C8CD1; --theme-2:#D07557;
+  --theme-3:#ABAB5C; --theme-4:#AD6B9C; --theme-5:#828C97;
+}
+
+*{box-sizing:border-box;}
+body{
+  background-color:var(--bg);
+  background-image:radial-gradient(circle, var(--dot) 1.2px, transparent 1.2px);
+  background-size:20px 20px;
+  color:var(--ink);
+  font-family:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  min-height:100vh;
+}
+h1,h2{text-wrap:balance;}
+button{font-family:inherit;}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+
+.page{
+  max-width:1400px;
+  margin:0 auto;
+  padding:32px 32px 60px;
+}
+
+/* ---------- Header ---------- */
+.header{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:20px;
+  flex-wrap:wrap;
+  margin-bottom:20px;
+}
+.header h1{
+  font-family:"Klee One","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+  font-weight:600;
+  font-size:1.9rem;
+  color:var(--accent);
+  margin:0 0 6px;
+}
+.header p{
+  margin:0;
+  font-size:.86rem;
+  color:var(--ink-soft);
+}
+.header-meta{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  flex-wrap:wrap;
+}
+.search-wrap{position:relative;}
+.search-wrap input{
+  width:180px;
+  padding:6px 10px 6px 26px;
+  font-size:.78rem;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:var(--surface-2);
+  color:var(--ink);
+}
+.search-wrap input:focus{outline:2px solid var(--accent);outline-offset:1px;}
+.search-wrap::before{
+  content:"🔎";
+  position:absolute;left:9px;top:50%;transform:translateY(-50%);
+  font-size:.72rem;opacity:.6;pointer-events:none;
+}
+.storage-note{
+  font-size:.74rem;
+  color:var(--ink-faint);
+  display:flex;
+  align-items:center;
+  gap:6px;
+  white-space:nowrap;
+}
+.storage-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
+
+.report-trigger-btn{
+  font-size:.78rem;
+  padding:6px 12px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:var(--surface-2);
+  color:var(--ink-soft);
+  cursor:pointer;
+  white-space:nowrap;
+}
+.report-trigger-btn:hover{border-color:var(--accent);color:var(--accent);}
+.column-header .col-report-btn{
+  border:none;background:none;color:var(--ink-faint);
+  font-size:.8rem;cursor:pointer;padding:2px 4px;border-radius:5px;
+}
+.column-header .col-report-btn:hover{color:var(--accent);background:var(--border-soft);}
+
+.report-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(20,18,14,.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  z-index:200;
+}
+.report-modal{
+  width:100%;
+  max-width:560px;
+  max-height:85vh;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  box-shadow:0 20px 50px -12px rgba(var(--shadow-color),.4);
+}
+.report-modal-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.report-modal-head h2{
+  margin:0;
+  font-size:1.05rem;
+  font-family:"Klee One","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+  color:var(--accent);
+}
+.report-close-btn{
+  border:none;background:var(--border-soft);color:var(--ink-soft);
+  width:28px;height:28px;border-radius:50%;
+  cursor:pointer;font-size:.85rem;flex:none;
+}
+.report-close-btn:hover{color:var(--accent);}
+.report-textarea{
+  flex:1;
+  min-height:240px;
+  resize:vertical;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  font-size:.85rem;
+  line-height:1.65;
+  white-space:pre-wrap;
+}
+.report-modal-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+}
+.report-copy-status{
+  font-size:.76rem;
+  color:var(--accent);
+}
+.report-copy-btn{
+  padding:9px 20px;
+  border-radius:9px;
+  border:none;
+  background:var(--accent);
+  color:var(--accent-ink);
+  font-weight:700;
+  font-size:.85rem;
+  cursor:pointer;
+}
+.report-copy-btn:hover{filter:brightness(1.08);}
+
+.sync-code-wrap{position:relative;}
+.sync-code-btn{
+  font-size:.76rem;
+  padding:5px 10px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:var(--surface-2);
+  color:var(--ink-soft);
+  cursor:pointer;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:.03em;
+}
+.sync-code-btn:hover{border-color:var(--accent);color:var(--accent);}
+.sync-code-panel{
+  position:absolute;
+  top:calc(100% + 8px);
+  right:0;
+  width:260px;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px;
+  box-shadow:0 10px 24px -6px rgba(var(--shadow-color),.3);
+  z-index:20;
+}
+.sync-code-panel p{
+  margin:0 0 10px;
+  font-size:.76rem;
+  color:var(--ink-soft);
+  line-height:1.5;
+}
+.sync-code-row{display:flex;gap:6px;}
+.sync-code-row input{
+  flex:1;
+  min-width:0;
+  padding:7px 9px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:var(--bg);
+  color:var(--ink);
+  font-size:.82rem;
+  font-variant-numeric:tabular-nums;
+  text-transform:uppercase;
+}
+.sync-code-row button{
+  padding:7px 10px;
+  border-radius:8px;
+  border:none;
+  background:var(--accent);
+  color:var(--accent-ink);
+  font-size:.74rem;
+  font-weight:700;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.sync-code-row button:hover{filter:brightness(1.08);}
+
+/* ---------- Board tabs ---------- */
+.board-tabs{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:22px;
+  padding-bottom:16px;
+  border-bottom:1px solid var(--border-soft);
+}
+.board-tab{
+  padding:8px 16px 8px 14px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:var(--surface-2);
+  color:var(--ink-soft);
+  font-size:.85rem;
+  font-weight:600;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+.board-tab:hover{border-color:var(--accent);}
+.board-tab.active{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);}
+.board-tab .tab-del{
+  border:none;background:none;color:inherit;
+  font-size:.7rem;padding:0 2px;cursor:pointer;line-height:1;
+  opacity:.55;
+}
+@media (hover:hover) and (pointer:fine){
+  .board-tab .tab-del{opacity:0;}
+  .board-tab:hover .tab-del{opacity:.6;}
+}
+.board-tab .tab-del:hover{opacity:1;}
+.add-board-tab{
+  padding:8px 14px;
+  border-radius:999px;
+  border:1.5px dashed var(--ink-faint);
+  background:transparent;
+  color:var(--ink-soft);
+  font-size:.82rem;
+  cursor:pointer;
+}
+.add-board-tab:hover{border-color:var(--accent);color:var(--accent);}
+.add-board-form{display:flex;gap:6px;align-items:center;}
+.add-board-form input{
+  padding:7px 12px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:var(--surface-2);
+  color:var(--ink);
+  font-size:.82rem;
+  width:140px;
+}
+.add-board-form input:focus{outline:2px solid var(--accent);outline-offset:1px;}
+
+.tag-filter-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-bottom:18px;
+}
+.tag-chip{
+  font-size:.72rem;
+  padding:4px 10px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:var(--surface-2);
+  color:var(--ink-soft);
+  cursor:pointer;
+  line-height:1.3;
+}
+.tag-chip:hover{border-color:var(--accent);}
+.tag-chip.active{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);}
+
+/* ---------- Composer ---------- */
+.composer{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-bottom:28px;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px 16px;
+}
+.composer input[type="text"]#noteInput{
+  width:100%;
+  border:none;
+  background:transparent;
+  color:var(--ink);
+  font-size:.98rem;
+  font-family:"Klee One","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+  padding:4px 2px 10px;
+  border-bottom:1px solid var(--border-soft);
+}
+.composer input[type="text"]#noteInput:focus{outline:none;}
+.composer-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.composer-swatches{display:flex;gap:6px;}
+.composer-swatch{
+  width:20px;height:20px;
+  border-radius:50%;
+  border:2px solid transparent;
+  cursor:pointer;
+  padding:0;
+}
+.composer-swatch.selected{border-color:var(--ink);}
+.composer-tags{
+  flex:1;
+  min-width:140px;
+  font-size:.82rem;
+  padding:8px 12px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:var(--bg);
+  color:var(--ink);
+}
+.composer-tags:focus{outline:2px solid var(--accent);outline-offset:1px;}
+.stick-btn{
+  background:var(--accent);
+  color:var(--accent-ink);
+  border:none;
+  padding:10px 24px;
+  border-radius:10px;
+  font-weight:700;
+  font-size:.9rem;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.stick-btn:hover{filter:brightness(1.08);}
+
+/* ---------- Theme columns ---------- */
+.board-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:20px;
+  align-items:flex-start;
+  padding-bottom:10px;
+}
+.column{
+  position:relative;
+  flex:0 0 300px;
+  width:300px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px 14px 16px;
+}
+.column.dragover{border-color:var(--accent); box-shadow:0 0 0 2px var(--accent) inset;}
+.column.col-dragging{opacity:.35;}
+.column-ghost{
+  pointer-events:none;
+  z-index:9999;
+  opacity:.92;
+  box-shadow:0 18px 30px -8px rgba(var(--shadow-color),.55) !important;
+}
+.column.col-drag-over-before{box-shadow:4px 0 0 0 var(--accent) inset;}
+.column.col-drag-over-after{box-shadow:-4px 0 0 0 var(--accent) inset;}
+@media (max-width:640px){
+  .column.col-drag-over-before{box-shadow:0 4px 0 0 var(--accent) inset;}
+  .column.col-drag-over-after{box-shadow:0 -4px 0 0 var(--accent) inset;}
+}
+.column.collapsed .card-list{display:none;}
+.column.collapsed .column-header{margin-bottom:0;padding-bottom:2px;border-bottom-color:transparent;}
+.column-header{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:2px 2px 12px;
+  margin-bottom:12px;
+  border-bottom:1px solid var(--border-soft);
+  cursor:pointer;
+  user-select:none;
+}
+.column-header .chevron{
+  font-size:.7rem;
+  color:var(--ink-faint);
+  transition:transform .15s ease;
+  flex:none;
+}
+.column.collapsed .column-header .chevron{transform:rotate(-90deg);}
+.col-handle{
+  position:absolute;
+  top:-8px;left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  align-items:center;
+  justify-content:center;
+  width:44px;height:18px;
+  border-radius:9px;
+  background:rgba(0,0,0,.16);
+  cursor:grab;
+  touch-action:none;
+  z-index:3;
+}
+.col-handle:hover{background:rgba(0,0,0,.28);}
+.col-handle span{
+  width:18px;height:2px;
+  border-radius:1px;
+  background:rgba(255,255,255,.85);
+  pointer-events:none;
+}
+.column.col-dragging .col-handle{cursor:grabbing;}
+.column-header .dot{width:9px;height:9px;border-radius:50%;flex:none;}
+.column-header .name{
+  flex:1;
+  font-weight:700;
+  font-size:.92rem;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.column-header .count{
+  font-size:.7rem;
+  font-variant-numeric:tabular-nums;
+  color:var(--ink-faint);
+  background:var(--border-soft);
+  padding:2px 8px;
+  border-radius:999px;
+}
+.column-header .col-del{
+  border:none;background:none;color:var(--ink-faint);
+  font-size:.8rem;cursor:pointer;padding:2px 4px;border-radius:5px;
+}
+.column-header .col-del:hover{color:var(--accent);background:var(--border-soft);}
+.column-header .col-move-btn{
+  border:none;background:none;color:var(--ink-faint);
+  font-size:.65rem;cursor:pointer;padding:2px 4px;border-radius:5px;
+  flex:none;
+}
+.column-header .col-move-btn:hover{color:var(--accent);background:var(--border-soft);}
+.column-header .col-move-btn:disabled{opacity:.3;cursor:default;}
+.column-header .col-move-btn:disabled:hover{color:var(--ink-faint);background:none;}
+
+.card-list{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  min-height:30px;
+}
+.column-empty{
+  font-size:.76rem;
+  color:var(--ink-faint);
+  text-align:center;
+  padding:18px 8px;
+}
+
+.note{
+  position:relative;
+  border-radius:10px;
+  padding:14px 14px 8px;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 2px 6px -2px rgba(var(--shadow-color),.25);
+  transition:transform .14s ease, box-shadow .14s ease;
+  cursor:grab;
+  touch-action:pan-y;
+}
+.note-ghost{
+  pointer-events:none;
+  z-index:9999;
+  opacity:.92;
+  transform:rotate(-1.5deg);
+  box-shadow:0 18px 30px -8px rgba(var(--shadow-color),.55) !important;
+}
+html.dnd-active, html.dnd-active *{
+  cursor:grabbing !important;
+  user-select:none !important;
+  -webkit-user-select:none !important;
+}
+.note-handle{
+  position:absolute;
+  top:-8px;left:50%;
+  transform:translateX(-50%);
+  width:44px;height:18px;
+  border-radius:9px;
+  background:rgba(0,0,0,.16);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:3px;
+  cursor:grab;
+  touch-action:none;
+  z-index:3;
+}
+.note-handle:hover{background:rgba(0,0,0,.28);}
+.note-handle span{
+  width:18px;height:2px;
+  border-radius:1px;
+  background:rgba(255,255,255,.85);
+  pointer-events:none;
+}
+.note.dragging .note-handle{cursor:grabbing;}
+.note:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 16px -6px rgba(var(--shadow-color),.32);
+}
+.note.dragging{opacity:.35;}
+.note.drag-over-top{box-shadow:0 -3px 0 0 var(--accent);}
+.note.drag-over-bottom{box-shadow:0 3px 0 0 var(--accent);}
+.note-text{
+  font-family:"Klee One","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+  font-size:.98rem;
+  line-height:1.55;
+  white-space:pre-wrap;
+  word-break:break-word;
+  outline:none;
+  min-height:1.6em;
+  margin-bottom:6px;
+}
+.note-tags{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-bottom:6px;}
+.note-tag{
+  font-size:.66rem;
+  padding:2px 8px;
+  border-radius:999px;
+  background:rgba(255,255,255,.45);
+  border:1px solid rgba(0,0,0,.08);
+  display:flex;align-items:center;gap:4px;
+}
+.note-tag button{border:none;background:none;padding:0;font-size:.68rem;cursor:pointer;color:inherit;opacity:.6;}
+.note-tag button:hover{opacity:1;}
+.tag-input{
+  font-size:.68rem;
+  border:1px solid rgba(0,0,0,.2);
+  border-radius:999px;
+  padding:2px 8px;
+  background:rgba(255,255,255,.65);
+  width:76px;
+  color:#000;
+}
+.note-footer{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:6px;
+  padding-top:6px;
+  margin-top:6px;
+  border-top:1px solid rgba(0,0,0,.08);
+}
+@media (hover:hover) and (pointer:fine){
+  .note-footer{
+    max-height:0;
+    opacity:0;
+    overflow:hidden;
+    padding-top:0;
+    margin-top:0;
+    border-top-color:transparent;
+    pointer-events:none;
+    transition:max-height .15s ease, opacity .12s ease, padding-top .15s ease, margin-top .15s ease, border-color .15s ease;
+  }
+  .note:hover .note-footer,
+  .note:focus-within .note-footer{
+    max-height:68px;
+    opacity:1;
+    padding-top:6px;
+    margin-top:4px;
+    border-top-color:rgba(0,0,0,.08);
+    pointer-events:auto;
+  }
+}
+.footer-btn{
+  display:flex;
+  align-items:center;
+  gap:3px;
+  border:1px solid rgba(0,0,0,.18);
+  background:rgba(255,255,255,.6);
+  border-radius:7px;
+  padding:3px 7px;
+  font-size:.68rem;
+  font-weight:500;
+  color:inherit;
+  cursor:pointer;
+  line-height:1.2;
+  white-space:nowrap;
+}
+.footer-btn:hover{background:rgba(255,255,255,.9);border-color:rgba(0,0,0,.35);}
+.footer-btn:disabled{opacity:.35;cursor:default;}
+.footer-btn:disabled:hover{background:rgba(255,255,255,.6);border-color:rgba(0,0,0,.18);}
+.footer-select{
+  border:1px solid rgba(0,0,0,.18);
+  background:rgba(255,255,255,.6);
+  border-radius:7px;
+  padding:3px 5px;
+  font-size:.68rem;
+  font-weight:500;
+  color:inherit;
+  cursor:pointer;
+  max-width:76px;
+}
+.footer-select:hover{background:rgba(255,255,255,.9);border-color:rgba(0,0,0,.35);}
+.swatch-btn{
+  width:16px;height:16px;
+  border-radius:50%;
+  border:2px solid var(--surface-2);
+  box-shadow:0 0 0 1px rgba(0,0,0,.35);
+  padding:0;
+  cursor:pointer;
+  flex:none;
+}
+.swatch-btn.active{box-shadow:0 0 0 2px var(--ink);}
+.color-picker-row{
+  display:flex;
+  gap:7px;
+  padding:2px 2px 8px;
+  align-items:center;
+}
+.note-date{
+  font-size:.66rem;
+  font-variant-numeric:tabular-nums;
+  opacity:.6;
+}
+.note-actions{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  margin-left:auto;
+}
+.footer-btn-del:hover{background:rgba(220,90,70,.28);border-color:rgba(160,50,40,.4);}
+
+.note-blue{background:var(--note-blue-bg);color:var(--note-blue-ink);}
+.note-purple{background:var(--note-purple-bg);color:var(--note-purple-ink);}
+.note-green{background:var(--note-green-bg);color:var(--note-green-ink);}
+.note-yellow{background:var(--note-yellow-bg);color:var(--note-yellow-ink);}
+.note-pink{background:var(--note-pink-bg);color:var(--note-pink-ink);}
+.note-orange{background:var(--note-orange-bg);color:var(--note-orange-ink);}
+
+.add-column{
+  flex:0 0 300px;
+  width:300px;
+  border:1.5px dashed var(--ink-faint);
+  border-radius:14px;
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  align-self:flex-start;
+}
+.add-column input{
+  padding:9px 12px;
+  border-radius:9px;
+  border:1px solid var(--border);
+  background:var(--surface-2);
+  color:var(--ink);
+  font-size:.85rem;
+}
+.add-column input:focus{outline:2px solid var(--accent);outline-offset:1px;}
+.add-column button{
+  padding:9px 12px;
+  border-radius:9px;
+  border:1.5px dashed var(--ink-faint);
+  background:transparent;
+  color:var(--ink-soft);
+  font-size:.82rem;
+  cursor:pointer;
+}
+.add-column button:hover{border-color:var(--accent);color:var(--accent);border-style:solid;}
+
+@media (max-width:640px){
+  .page{padding:22px 16px 44px;}
+  .header h1{font-size:1.5rem;}
+  .composer{flex-direction:column;}
+  .stick-btn{padding:12px;}
+  .board-row{
+    flex-direction:column;
+    overflow-x:visible;
+    align-items:stretch;
+  }
+  .column, .add-column{
+    flex:1 1 auto;
+    width:100%;
+  }
+}
+</style>
+
+<div class="page">
+  <div class="header">
+    <div>
+      <h1>ふせんメモ</h1>
+      <p>思いついたことをメモして、あとでボードとテーマにまとめましょう。</p>
+    </div>
+    <div class="header-meta">
+      <div class="search-wrap"><input id="searchInput" type="text" placeholder="本文・タグを検索" autocomplete="off"></div>
+      <button type="button" id="boardReportBtn" class="report-trigger-btn" title="このボードのレポートを作成">📄 レポート</button>
+      <div class="sync-code-wrap">
+        <button type="button" id="syncCodeToggle" class="sync-code-btn" title="同期コード">🔗 <span id="syncCodeLabel">------</span></button>
+        <div class="sync-code-panel" id="syncCodePanel" hidden>
+          <p>この端末のコードです。他の端末にも同じコードを入力すると、付箋データが同期されます。</p>
+          <div class="sync-code-row">
+            <input type="text" id="syncCodeInput" maxlength="12" autocomplete="off" spellcheck="false">
+            <button type="button" id="syncCodeApply">この端末に適用</button>
+          </div>
+        </div>
+      </div>
+      <div class="storage-note"><span class="storage-dot" id="storageDot"></span><span id="storageLabel">この端末に保存されます</span></div>
+    </div>
+  </div>
+
+  <div class="board-tabs" id="boardTabs"></div>
+
+  <div class="tag-filter-row" id="tagFilterRow"></div>
+
+  <div class="composer">
+    <input id="noteInput" type="text" placeholder="いま思いついたことを書く…" autocomplete="off">
+    <div class="composer-row">
+      <div class="composer-swatches" id="composerSwatches"></div>
+      <input id="composerTagsInput" class="composer-tags" type="text" placeholder="タグ(カンマ区切り、任意)" autocomplete="off">
+      <button class="stick-btn" id="stickBtn" type="button">付箋を貼る</button>
+    </div>
+  </div>
+
+  <div class="board-row" id="boardRow"></div>
+</div>
+
+<div class="report-overlay" id="reportOverlay" hidden>
+  <div class="report-modal">
+    <div class="report-modal-head">
+      <h2 id="reportTitle">レポート</h2>
+      <button type="button" id="reportClose" class="report-close-btn" title="閉じる">✕</button>
+    </div>
+    <textarea id="reportText" class="report-textarea" readonly spellcheck="false"></textarea>
+    <div class="report-modal-actions">
+      <span id="reportCopyStatus" class="report-copy-status"></span>
+      <button type="button" id="reportCopyBtn" class="report-copy-btn">コピー</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var STORAGE_KEY = "stickyboard.notes.v2";
+  var COLORS = ["blue","purple","green","yellow","pink","orange"];
+  var THEME_HUES = 6;
+
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+  function colorForId(id){
+    var h = 0;
+    for(var i=0;i<id.length;i++){ h = (h*31 + id.charCodeAt(i)) | 0; }
+    return COLORS[Math.abs(h) % COLORS.length];
+  }
+
+  function seedState(){
+    var now = Date.now();
+    var boards = [
+      {id:"board-work", name:"仕事"},
+      {id:"board-life", name:"プライベート"}
+    ];
+    var themes = [
+      {id:"t-accounting", boardId:"board-work", name:"経理", hue:0},
+      {id:"t-general", boardId:"board-work", name:"総務", hue:1},
+      {id:"t-shopping", boardId:"board-life", name:"買い物", hue:0},
+      {id:"t-ideas", boardId:"board-life", name:"アイデア", hue:1}
+    ];
+    var mk = function(text, boardId, themeId, tags, ago){
+      var id = uid();
+      return {id:id, text:text, color:colorForId(id), boardId:boardId, themeId:themeId, tags:tags||[], createdAt: now-ago};
+    };
+    var notes = [
+      mk("会議室Aを15時に予約する", "board-work", null, [], 1000*60*10),
+      mk("名刺の在庫を確認する", "board-work", null, [], 1000*60*30),
+      mk("月次売上データをまとめる", "board-work", "t-accounting", ["締切"], 1000*60*60),
+      mk("領収書を経理へ提出する", "board-work", "t-accounting", [], 1000*60*90),
+      mk("備品の発注リストを作る", "board-work", "t-general", [], 1000*60*120),
+
+      mk("👋 これはサンプルです。自由に書き換えたり削除したりしてください。", "board-life", null, ["はじめに"], 1000*60*5),
+      mk("牛乳と卵を買う", "board-life", "t-shopping", ["日用品"], 1000*60*40),
+      mk("付箋をドラッグしてテーマに移動できるようにする", "board-life", "t-ideas", ["機能案"], 1000*60*150),
+      mk("週末に読みたい本のメモ", "board-life", "t-ideas", ["個人"], 1000*60*500)
+    ];
+    return {boards:boards, themes:themes, notes:notes};
+  }
+
+  function load(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return seedState();
+      var parsed = JSON.parse(raw);
+      if(!parsed || !Array.isArray(parsed.notes) || !Array.isArray(parsed.boards) || !Array.isArray(parsed.themes)) return seedState();
+      return parsed;
+    }catch(e){ return seedState(); }
+  }
+  var dbRef = null;
+  var fbDb = null;
+  var lastSyncedJSON = null;
+  function save(){
+    var json = JSON.stringify(state);
+    lastSyncedJSON = json;
+    try{ localStorage.setItem(STORAGE_KEY, json); }catch(e){}
+    if(dbRef){ dbRef.set(state).catch(function(){}); }
+    if(fbDb){ fbDocRef().set(state).catch(function(){}); }
+  }
+
+  function ensureOrder(){
+    var groups = {};
+    state.notes.forEach(function(n){
+      var key = n.boardId+"::"+(n.themeId||"");
+      (groups[key] = groups[key]||[]).push(n);
+    });
+    var changed = false;
+    Object.keys(groups).forEach(function(key){
+      var list = groups[key];
+      if(!list.every(function(n){ return typeof n.order==="number"; })){
+        list.sort(function(a,b){ return b.createdAt-a.createdAt; });
+        list.forEach(function(n,i){ n.order = i; });
+        changed = true;
+      }
+    });
+    if(changed) save();
+  }
+
+  function ensureThemeOrder(){
+    var groups = {};
+    state.themes.forEach(function(t){
+      (groups[t.boardId] = groups[t.boardId]||[]).push(t);
+    });
+    var changed = false;
+    Object.keys(groups).forEach(function(boardId){
+      var list = groups[boardId];
+      if(!list.every(function(t){ return typeof t.order==="number"; })){
+        list.forEach(function(t,i){ t.order = i; });
+        changed = true;
+      }
+    });
+    if(changed) save();
+  }
+
+  var state = load();
+  ensureOrder();
+  ensureThemeOrder();
+  var activeBoardId = state.boards.length ? state.boards[0].id : null;
+  var activeTags = [];
+  var searchTerm = "";
+  var pendingDeleteTheme = null;
+  var pendingDeleteBoard = null;
+  var addingBoard = false;
+  var collapsedThemes = {};
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];
+    });
+  }
+  function formatDate(ts){
+    var d = new Date(ts);
+    var mm=d.getMonth()+1, dd=d.getDate();
+    var hh=String(d.getHours()).padStart(2,"0"), mi=String(d.getMinutes()).padStart(2,"0");
+    return mm+"/"+dd+" "+hh+":"+mi;
+  }
+
+  function themesForBoard(boardId){
+    return state.themes
+      .filter(function(t){ return t.boardId===boardId; })
+      .sort(function(a,b){ return (a.order||0)-(b.order||0); });
+  }
+  function reorderTheme(draggedId, boardId, targetId, insertAfter){
+    if(!draggedId || draggedId===targetId) return;
+    var dragged = state.themes.find(function(t){ return t.id===draggedId; });
+    if(!dragged) return;
+    var list = state.themes
+      .filter(function(t){ return t.boardId===boardId && t.id!==draggedId; })
+      .sort(function(a,b){ return (a.order||0)-(b.order||0); });
+    var idx = list.findIndex(function(t){ return t.id===targetId; });
+    var pos = idx===-1 ? list.length : (insertAfter ? idx+1 : idx);
+    list.splice(pos, 0, dragged);
+    list.forEach(function(t,i){ t.order = i; });
+    save(); render();
+  }
+  function moveThemeStep(boardId, themeId, dir){
+    var list = themesForBoard(boardId);
+    var idx = list.findIndex(function(t){ return t.id===themeId; });
+    var newIdx = idx+dir;
+    if(idx===-1 || newIdx<0 || newIdx>=list.length) return;
+    var tmp = list[idx];
+    list[idx] = list[newIdx];
+    list[newIdx] = tmp;
+    list.forEach(function(t,i){ t.order = i; });
+    save(); render();
+  }
+  function notesInBoard(boardId){
+    return state.notes.filter(function(n){ return n.boardId===boardId; });
+  }
+  function allTagsInBoard(boardId){
+    var set = {};
+    notesInBoard(boardId).forEach(function(n){ (n.tags||[]).forEach(function(t){ set[t]=true; }); });
+    return Object.keys(set).sort();
+  }
+  function noteMatches(n){
+    if(activeTags.length){
+      var tags = n.tags||[];
+      if(!activeTags.some(function(t){ return tags.indexOf(t)!==-1; })) return false;
+    }
+    if(searchTerm){
+      var hay = (n.text+" "+(n.tags||[]).join(" ")).toLowerCase();
+      if(hay.indexOf(searchTerm.toLowerCase())===-1) return false;
+    }
+    return true;
+  }
+  function notesForTheme(boardId, themeId){
+    return state.notes
+      .filter(function(n){ return n.boardId===boardId && (n.themeId||null)===themeId && noteMatches(n); })
+      .sort(function(a,b){ return (a.order||0)-(b.order||0); });
+  }
+  function notesForThemeAll(boardId, themeId){
+    return state.notes
+      .filter(function(n){ return n.boardId===boardId && (n.themeId||null)===(themeId||null); })
+      .sort(function(a,b){ return (a.order||0)-(b.order||0); });
+  }
+  function formatReportDate(d){
+    return d.getFullYear()+"/"+(d.getMonth()+1)+"/"+d.getDate()+" 作成";
+  }
+  function formatReportNote(n){
+    var line = "・"+n.text.replace(/\n/g, " ");
+    if(n.tags && n.tags.length){ line += " ["+n.tags.map(function(t){ return "#"+t; }).join(" ")+"]"; }
+    line += "  ("+formatDate(n.createdAt)+")";
+    return line;
+  }
+  function buildThemeReport(boardId, themeId, themeLabel){
+    var board = state.boards.find(function(b){ return b.id===boardId; });
+    var notes = notesForThemeAll(boardId, themeId);
+    var lines = [];
+    lines.push((board?board.name+" / ":"")+themeLabel+" のレポート");
+    lines.push(formatReportDate(new Date()));
+    lines.push("");
+    lines.push(themeLabel+"（"+notes.length+"件）");
+    if(!notes.length){
+      lines.push("・(付箋なし)");
+    }else{
+      notes.forEach(function(n){ lines.push(formatReportNote(n)); });
+    }
+    return lines.join("\n");
+  }
+  function buildBoardReport(boardId){
+    var board = state.boards.find(function(b){ return b.id===boardId; });
+    var themes = themesForBoard(boardId);
+    var groups = [{id:null, name:"未整理"}].concat(themes.map(function(t){ return {id:t.id, name:t.name}; }));
+    var totalCount = 0;
+    var sections = [];
+    groups.forEach(function(g){
+      var notes = notesForThemeAll(boardId, g.id);
+      if(!notes.length) return;
+      totalCount += notes.length;
+      var sec = [g.name+"（"+notes.length+"件）"];
+      notes.forEach(function(n){ sec.push(formatReportNote(n)); });
+      sections.push(sec.join("\n"));
+    });
+    var lines = [];
+    lines.push((board?board.name:"ボード")+" のレポート");
+    lines.push(formatReportDate(new Date()));
+    lines.push("全"+totalCount+"件");
+    lines.push("");
+    lines.push(sections.length ? sections.join("\n\n") : "（付箋なし）");
+    return lines.join("\n");
+  }
+  function showReportModal(text, title){
+    document.getElementById("reportTitle").textContent = title;
+    document.getElementById("reportText").value = text;
+    document.getElementById("reportCopyStatus").textContent = "";
+    document.getElementById("reportOverlay").hidden = false;
+  }
+  function hideReportModal(){
+    document.getElementById("reportOverlay").hidden = true;
+  }
+  function groupOrders(boardId, themeId, excludeId){
+    return state.notes
+      .filter(function(n){ return n.boardId===boardId && (n.themeId||null)===(themeId||null) && n.id!==excludeId && typeof n.order==="number"; })
+      .map(function(n){ return n.order; });
+  }
+  function themeOptionsHtml(boardId, currentThemeId){
+    var opts = '<option value="" '+(!currentThemeId?"selected":"")+'>未整理</option>';
+    themesForBoard(boardId).forEach(function(t){
+      opts += '<option value="'+t.id+'" '+(currentThemeId===t.id?"selected":"")+'>'+escapeHtml(t.name)+'</option>';
+    });
+    return opts;
+  }
+  function deleteNote(id){
+    state.notes = state.notes.filter(function(n){ return n.id!==id; });
+    save(); render();
+  }
+  function moveNoteToTheme(noteId, themeId){
+    if(!noteId) return;
+    var note = state.notes.find(function(n){ return n.id===noteId; });
+    if(!note) return;
+    note.themeId = themeId;
+    var orders = groupOrders(note.boardId, themeId, note.id);
+    note.order = orders.length ? Math.max.apply(null, orders)+1 : 0;
+    save(); render();
+  }
+  function reorderNote(draggedId, boardId, themeId, targetId, insertAfter){
+    if(!draggedId || draggedId===targetId) return;
+    var dragged = state.notes.find(function(n){ return n.id===draggedId; });
+    if(!dragged) return;
+    dragged.themeId = themeId;
+    var list = state.notes
+      .filter(function(n){ return n.boardId===boardId && (n.themeId||null)===(themeId||null) && n.id!==draggedId; })
+      .sort(function(a,b){ return (a.order||0)-(b.order||0); });
+    var idx = list.findIndex(function(n){ return n.id===targetId; });
+    var insertPos = idx===-1 ? list.length : (insertAfter ? idx+1 : idx);
+    list.splice(insertPos, 0, dragged);
+    list.forEach(function(n,i){ n.order = i; });
+    save(); render();
+  }
+  function moveNoteStep(noteId, dir){
+    var note = state.notes.find(function(n){ return n.id===noteId; });
+    if(!note) return;
+    var list = state.notes
+      .filter(function(n){ return n.boardId===note.boardId && (n.themeId||null)===(note.themeId||null); })
+      .sort(function(a,b){ return (a.order||0)-(b.order||0); });
+    var idx = list.findIndex(function(n){ return n.id===noteId; });
+    var newIdx = idx+dir;
+    if(idx===-1 || newIdx<0 || newIdx>=list.length) return;
+    var tmp = list[idx];
+    list[idx] = list[newIdx];
+    list[newIdx] = tmp;
+    list.forEach(function(n,i){ n.order = i; });
+    save(); render();
+  }
+  function deleteTheme(themeId){
+    state.notes.forEach(function(n){ if(n.themeId===themeId) n.themeId=null; });
+    state.themes = state.themes.filter(function(t){ return t.id!==themeId; });
+    save(); render();
+  }
+  function deleteBoard(boardId){
+    if(state.boards.length<=1) return;
+    state.themes = state.themes.filter(function(t){ return t.boardId!==boardId; });
+    state.notes = state.notes.filter(function(n){ return n.boardId!==boardId; });
+    state.boards = state.boards.filter(function(b){ return b.id!==boardId; });
+    if(activeBoardId===boardId) activeBoardId = state.boards[0].id;
+    save(); render();
+  }
+
+  function renderBoardTabs(){
+    var wrap = document.getElementById("boardTabs");
+    wrap.innerHTML = "";
+    state.boards.forEach(function(b){
+      var tab = document.createElement("button");
+      tab.type = "button";
+      tab.className = "board-tab"+(b.id===activeBoardId?" active":"");
+      var confirmMode = pendingDeleteBoard===b.id;
+      tab.innerHTML = '<span>'+escapeHtml(b.name)+'</span>';
+      if(state.boards.length>1){
+        var del = document.createElement("span");
+        del.className = "tab-del";
+        del.textContent = confirmMode ? "削除?" : "✕";
+        del.addEventListener("click", function(e){
+          e.stopPropagation();
+          if(pendingDeleteBoard===b.id){
+            deleteBoard(b.id);
+            pendingDeleteBoard = null;
+          } else {
+            pendingDeleteBoard = b.id;
+            render();
+            setTimeout(function(){ if(pendingDeleteBoard===b.id){ pendingDeleteBoard=null; render(); } }, 3000);
+          }
+        });
+        tab.appendChild(del);
+      }
+      tab.addEventListener("click", function(){
+        activeBoardId = b.id;
+        activeTags = [];
+        render();
+      });
+      wrap.appendChild(tab);
+    });
+
+    if(addingBoard){
+      var form = document.createElement("div");
+      form.className = "add-board-form";
+      form.innerHTML = '<input type="text" id="newBoardInput" placeholder="ボード名" maxlength="20" autocomplete="off">';
+      wrap.appendChild(form);
+      var input = form.querySelector("input");
+      setTimeout(function(){ input.focus(); }, 0);
+      var committed = false;
+      function commit(){
+        if(committed) return;
+        committed = true;
+        var name = input.value.trim();
+        if(name){
+          var id = uid();
+          state.boards.push({id:id, name:name});
+          activeBoardId = id;
+          save();
+        }
+        addingBoard = false;
+        render();
+      }
+      input.addEventListener("keydown", function(e){
+        if(e.key==="Enter"){ e.preventDefault(); commit(); }
+        if(e.key==="Escape"){ committed=true; addingBoard=false; render(); }
+      });
+      input.addEventListener("blur", function(){ setTimeout(commit, 120); });
+    } else {
+      var addBtn = document.createElement("button");
+      addBtn.type = "button";
+      addBtn.className = "add-board-tab";
+      addBtn.textContent = "+ 新しいボード";
+      addBtn.addEventListener("click", function(){ addingBoard = true; render(); });
+      wrap.appendChild(addBtn);
+    }
+  }
+
+  function renderTagFilter(){
+    var row = document.getElementById("tagFilterRow");
+    var tags = allTagsInBoard(activeBoardId);
+    row.innerHTML = "";
+    if(!tags.length){ row.style.display="none"; return; }
+    row.style.display="flex";
+    tags.forEach(function(t){
+      var chip = document.createElement("button");
+      chip.type="button";
+      chip.className = "tag-chip"+(activeTags.indexOf(t)!==-1?" active":"");
+      chip.textContent = "#"+t;
+      chip.addEventListener("click", function(){
+        var idx = activeTags.indexOf(t);
+        if(idx===-1) activeTags.push(t); else activeTags.splice(idx,1);
+        render();
+      });
+      row.appendChild(chip);
+    });
+  }
+
+  var dragState = null;
+  var DRAG_THRESHOLD = 6;
+
+  function clearDropIndicators(){
+    document.querySelectorAll(".drag-over-top,.drag-over-bottom").forEach(function(el){
+      el.classList.remove("drag-over-top","drag-over-bottom");
+    });
+    document.querySelectorAll(".column.dragover").forEach(function(el){ el.classList.remove("dragover"); });
+  }
+
+  function pointFromEvent(e){
+    if(e.touches && e.touches.length) return {x:e.touches[0].clientX, y:e.touches[0].clientY};
+    return {x:e.clientX, y:e.clientY};
+  }
+
+  function updateDropTarget(pt){
+    if(!dragState) return;
+    clearDropIndicators();
+    if(dragState.ghostEl) dragState.ghostEl.style.display="none";
+    var el = document.elementFromPoint(pt.x, pt.y);
+    if(dragState.ghostEl) dragState.ghostEl.style.display="";
+    if(!el) return;
+    var noteEl = el.closest(".note");
+    if(noteEl && noteEl.dataset.id!==dragState.noteId){
+      var r = noteEl.getBoundingClientRect();
+      var before = (pt.y - r.top) < r.height/2;
+      noteEl.classList.add(before ? "drag-over-top" : "drag-over-bottom");
+      return;
+    }
+    var colEl = el.closest(".column");
+    if(colEl){ colEl.classList.add("dragover"); }
+  }
+
+  function resolveDrop(pt){
+    if(!dragState) return null;
+    if(dragState.ghostEl) dragState.ghostEl.style.display="none";
+    var el = document.elementFromPoint(pt.x, pt.y);
+    if(dragState.ghostEl) dragState.ghostEl.style.display="";
+    if(!el) return null;
+    var noteEl = el.closest(".note");
+    if(noteEl && noteEl.dataset.id!==dragState.noteId){
+      var r = noteEl.getBoundingClientRect();
+      var before = (pt.y - r.top) < r.height/2;
+      return {type:"note", boardId:noteEl.dataset.boardId, themeId:noteEl.dataset.themeId||null, targetId:noteEl.dataset.id, insertAfter:!before};
+    }
+    var colEl = el.closest(".column");
+    if(colEl){ return {type:"column", boardId:colEl.dataset.boardId, themeId:colEl.dataset.themeId||null}; }
+    return null;
+  }
+
+  function autoScrollTick(){
+    if(!dragState) return;
+    var pt = dragState.lastPt;
+    if(pt){
+      var vh = window.innerHeight;
+      var EDGE = 80, MAX_SPEED = 16;
+      if(pt.y < EDGE){
+        window.scrollBy(0, -MAX_SPEED*(1-pt.y/EDGE));
+      } else if(pt.y > vh-EDGE){
+        window.scrollBy(0, MAX_SPEED*(1-(vh-pt.y)/EDGE));
+      }
+    }
+    dragState.rafId = requestAnimationFrame(autoScrollTick);
+  }
+
+  function beginDrag(card, noteId, pt){
+    var r = card.getBoundingClientRect();
+    var ghost = card.cloneNode(true);
+    ghost.className = card.className+" note-ghost";
+    ghost.style.position = "fixed";
+    ghost.style.left = r.left+"px";
+    ghost.style.top = r.top+"px";
+    ghost.style.width = r.width+"px";
+    ghost.style.margin = "0";
+    document.body.appendChild(ghost);
+    dragState = {
+      noteId: noteId,
+      ghostEl: ghost,
+      offsetX: pt.x - r.left,
+      offsetY: pt.y - r.top,
+      lastPt: pt
+    };
+    var myDragState = dragState;
+    card.classList.add("dragging");
+    document.documentElement.classList.add("dnd-active");
+    dragState.rafId = requestAnimationFrame(autoScrollTick);
+    dragState.safetyTimer = setTimeout(function(){
+      if(dragState===myDragState){ endDrag(card, myDragState.lastPt, false); }
+    }, 4000);
+    if(window.navigator && window.navigator.vibrate){ window.navigator.vibrate(12); }
+  }
+
+  function moveGhostTo(pt){
+    if(!dragState || !dragState.ghostEl) return;
+    dragState.lastPt = pt;
+    dragState.ghostEl.style.left = (pt.x - dragState.offsetX)+"px";
+    dragState.ghostEl.style.top = (pt.y - dragState.offsetY)+"px";
+  }
+
+  function endDrag(card, pt, commit){
+    if(commit && dragState){
+      var result = resolveDrop(pt);
+      if(result){
+        if(result.type==="note"){
+          reorderNote(dragState.noteId, result.boardId, result.themeId, result.targetId, result.insertAfter);
+        } else if(result.type==="column"){
+          moveNoteToTheme(dragState.noteId, result.themeId);
+        }
+      }
+    }
+    if(dragState && dragState.rafId){ cancelAnimationFrame(dragState.rafId); }
+    if(dragState && dragState.safetyTimer){ clearTimeout(dragState.safetyTimer); }
+    if(dragState && dragState.ghostEl && dragState.ghostEl.parentNode){
+      dragState.ghostEl.parentNode.removeChild(dragState.ghostEl);
+    }
+    card.classList.remove("dragging");
+    document.querySelectorAll(".note.dragging").forEach(function(el){ el.classList.remove("dragging"); });
+    document.documentElement.classList.remove("dnd-active");
+    clearDropIndicators();
+    dragState = null;
+    applyPendingRemoteIfIdle();
+  }
+
+  function attachDragHandle(card, noteId){
+    var pointerId = null;
+    var startPt = null;
+    var dragging = false;
+    var longPressTimer = null;
+    var LONG_PRESS_MS = 260;
+    var MOVE_CANCEL_TOLERANCE = 10;
+    var strictIgnoreSelector = ".note-handle, .note-text, .note-footer, .note-tags, button, input, select";
+    var mouseIgnoreSelector = strictIgnoreSelector;
+
+    function clearLongPress(){
+      if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer = null; }
+    }
+    function startDragging(pt){
+      dragging = true;
+      beginDrag(card, noteId, pt);
+    }
+
+    function onMove(e){
+      if(e.pointerId!==undefined && e.pointerId!==pointerId) return;
+      if(dragging && !dragState){ dragging=false; window.removeEventListener("pointermove",onMove); window.removeEventListener("pointerup",onUp); window.removeEventListener("pointercancel",onCancel); return; }
+      if(dragging && e.buttons===0){ onUp(e); return; }
+      var pt = pointFromEvent(e);
+      if(!dragging){
+        if(longPressTimer){
+          if(Math.abs(pt.x-startPt.x)>MOVE_CANCEL_TOLERANCE || Math.abs(pt.y-startPt.y)>MOVE_CANCEL_TOLERANCE){
+            clearLongPress();
+          }
+          return;
+        }
+        if(Math.abs(pt.x-startPt.x)<DRAG_THRESHOLD && Math.abs(pt.y-startPt.y)<DRAG_THRESHOLD) return;
+        startDragging(startPt);
+      }
+      e.preventDefault();
+      moveGhostTo(pt);
+      updateDropTarget(pt);
+    }
+    function onUp(e){
+      clearLongPress();
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+      if(dragging){ endDrag(card, pointFromEvent(e), true); }
+      dragging = false;
+      pointerId = null;
+    }
+    function onCancel(){
+      clearLongPress();
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+      if(dragging){ endDrag(card, startPt, false); }
+      dragging = false;
+      pointerId = null;
+    }
+
+    card.addEventListener("pointerdown", function(e){
+      if(e.pointerType==="mouse" && e.button!==0) return;
+      var isTouch = e.pointerType==="touch";
+      var ignoreSelector = isTouch ? strictIgnoreSelector : mouseIgnoreSelector;
+      if(e.target.closest(ignoreSelector)) return;
+      pointerId = e.pointerId;
+      startPt = pointFromEvent(e);
+      dragging = false;
+      try{ card.setPointerCapture(pointerId); }catch(err){}
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+      window.addEventListener("pointercancel", onCancel);
+      if(isTouch){
+        longPressTimer = setTimeout(function(){
+          longPressTimer = null;
+          startDragging(startPt);
+        }, LONG_PRESS_MS);
+      }
+    });
+  }
+
+  function attachHandleDrag(handle, card, noteId){
+    var pointerId = null;
+    var startPt = null;
+    var dragging = false;
+    var THRESH = 4;
+
+    function onMove(e){
+      if(e.pointerId!==undefined && e.pointerId!==pointerId) return;
+      if(dragging && !dragState){ dragging=false; window.removeEventListener("pointermove",onMove); window.removeEventListener("pointerup",onUp); window.removeEventListener("pointercancel",onCancel); return; }
+      if(dragging && e.buttons===0){ onUp(e); return; }
+      var pt = pointFromEvent(e);
+      if(!dragging){
+        if(Math.abs(pt.x-startPt.x)<THRESH && Math.abs(pt.y-startPt.y)<THRESH) return;
+        dragging = true;
+        beginDrag(card, noteId, startPt);
+      }
+      e.preventDefault();
+      moveGhostTo(pt);
+      updateDropTarget(pt);
+    }
+    function onUp(e){
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+      if(dragging){ endDrag(card, pointFromEvent(e), true); }
+      dragging = false; pointerId = null;
+    }
+    function onCancel(){
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+      if(dragging){ endDrag(card, startPt, false); }
+      dragging = false; pointerId = null;
+    }
+    handle.addEventListener("pointerdown", function(e){
+      if(e.pointerType==="mouse" && e.button!==0) return;
+      e.preventDefault();
+      pointerId = e.pointerId;
+      startPt = pointFromEvent(e);
+      dragging = false;
+      try{ handle.setPointerCapture(pointerId); }catch(err){}
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+      window.addEventListener("pointercancel", onCancel);
+    });
+  }
+
+  function renderNoteCard(note){
+    var card = document.createElement("div");
+    card.className = "note note-"+note.color;
+    card.dataset.id = note.id;
+    card.dataset.boardId = note.boardId;
+    card.dataset.themeId = note.themeId || "";
+
+    attachDragHandle(card, note.id);
+
+    var handle = document.createElement("div");
+    handle.className = "note-handle";
+    handle.title = "ドラッグして移動";
+    handle.innerHTML = "<span></span><span></span>";
+    attachHandleDrag(handle, card, note.id);
+    card.appendChild(handle);
+
+    var textDiv = document.createElement("div");
+    textDiv.className = "note-text";
+    textDiv.contentEditable = "true";
+    textDiv.spellcheck = false;
+    textDiv.textContent = note.text;
+    textDiv.addEventListener("blur", function(){
+      var v = textDiv.textContent.trim();
+      if(!v){ deleteNote(note.id); return; }
+      note.text = v; save();
+    });
+    textDiv.addEventListener("keydown", function(e){
+      if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); textDiv.blur(); }
+    });
+    card.appendChild(textDiv);
+
+    var showTags = (note.tags && note.tags.length>0);
+    var tagsRow = document.createElement("div");
+    tagsRow.className = "note-tags";
+    tagsRow.style.display = showTags ? "flex" : "none";
+    (note.tags||[]).forEach(function(t){
+      var chip = document.createElement("span");
+      chip.className = "note-tag";
+      chip.innerHTML = "#"+escapeHtml(t)+" ";
+      var rm = document.createElement("button");
+      rm.type="button"; rm.textContent="✕";
+      rm.addEventListener("click", function(){
+        note.tags = note.tags.filter(function(x){ return x!==t; });
+        save(); render();
+      });
+      chip.appendChild(rm);
+      tagsRow.appendChild(chip);
+    });
+    card.appendChild(tagsRow);
+
+    var footer = document.createElement("div");
+    footer.className = "note-footer";
+
+    var date = document.createElement("span");
+    date.className = "note-date";
+    date.textContent = formatDate(note.createdAt);
+    footer.appendChild(date);
+
+    var actions = document.createElement("div");
+    actions.className = "note-actions";
+
+    var colorToggle = document.createElement("button");
+    colorToggle.type = "button";
+    colorToggle.className = "footer-btn";
+    colorToggle.title = "色を変える";
+    colorToggle.innerHTML = "🎨<span>色</span>";
+    colorToggle.addEventListener("click", function(){
+      var openInput = card.querySelector(".tag-input");
+      if(openInput){ openInput.blur(); return; }
+      var openRow = card.querySelector(".color-picker-row");
+      if(openRow){ openRow.remove(); return; }
+      var row = document.createElement("div");
+      row.className = "color-picker-row";
+      COLORS.forEach(function(c){
+        var dot = document.createElement("button");
+        dot.type = "button";
+        dot.className = "swatch-btn note-"+c+(c===note.color?" active":"");
+        dot.title = c;
+        dot.addEventListener("click", function(e){
+          e.stopPropagation();
+          note.color = c;
+          save(); render();
+        });
+        row.appendChild(dot);
+      });
+      footer.parentNode.insertBefore(row, footer);
+    });
+    actions.appendChild(colorToggle);
+
+    var tagToggle = document.createElement("button");
+    tagToggle.type="button";
+    tagToggle.className="footer-btn";
+    tagToggle.title="タグを追加";
+    tagToggle.innerHTML="🏷<span>タグ</span>";
+    tagToggle.addEventListener("click", function(){
+      var openRow = card.querySelector(".color-picker-row");
+      if(openRow) openRow.remove();
+      var openInput = card.querySelector(".tag-input");
+      if(openInput){ openInput.blur(); return; }
+      var input = document.createElement("input");
+      input.className = "tag-input";
+      input.placeholder = "タグ名";
+      footer.parentNode.insertBefore(input, footer);
+      input.focus();
+      var committed = false;
+      function commit(){
+        if(committed) return;
+        committed = true;
+        var v = input.value.trim();
+        if(v){
+          note.tags = note.tags || [];
+          if(note.tags.indexOf(v)===-1) note.tags.push(v);
+          save();
+        }
+        render();
+      }
+      input.addEventListener("keydown", function(e){
+        if(e.key==="Enter"){ e.preventDefault(); commit(); }
+        if(e.key==="Escape"){ committed=true; render(); }
+      });
+      input.addEventListener("blur", commit);
+    });
+    actions.appendChild(tagToggle);
+
+    var siblingNotes = state.notes
+      .filter(function(n){ return n.boardId===note.boardId && (n.themeId||null)===(note.themeId||null); })
+      .sort(function(a,b){ return (a.order||0)-(b.order||0); });
+    var noteIdx = siblingNotes.findIndex(function(n){ return n.id===note.id; });
+
+    var upBtn = document.createElement("button");
+    upBtn.type="button"; upBtn.className="footer-btn"; upBtn.innerHTML="▲";
+    upBtn.title="上へ移動";
+    upBtn.disabled = noteIdx<=0;
+    upBtn.addEventListener("click", function(){ moveNoteStep(note.id, -1); });
+    actions.appendChild(upBtn);
+
+    var downBtn = document.createElement("button");
+    downBtn.type="button"; downBtn.className="footer-btn"; downBtn.innerHTML="▼";
+    downBtn.title="下へ移動";
+    downBtn.disabled = noteIdx>=siblingNotes.length-1;
+    downBtn.addEventListener("click", function(){ moveNoteStep(note.id, 1); });
+    actions.appendChild(downBtn);
+
+    var themeSelect = document.createElement("select");
+    themeSelect.className = "footer-select";
+    themeSelect.title = "テーマを移動";
+    themeSelect.innerHTML = themeOptionsHtml(note.boardId, note.themeId);
+    themeSelect.addEventListener("change", function(){
+      moveNoteToTheme(note.id, themeSelect.value || null);
+    });
+    actions.appendChild(themeSelect);
+
+    var del = document.createElement("button");
+    del.type="button"; del.className="footer-btn footer-btn-del"; del.innerHTML="✕<span>削除</span>";
+    del.title="削除";
+    del.addEventListener("click", function(){ deleteNote(note.id); });
+    actions.appendChild(del);
+
+    footer.appendChild(actions);
+    card.appendChild(footer);
+    return card;
+  }
+
+  var colDragState = null;
+
+  function isMobileLayout(){
+    return window.matchMedia("(max-width:640px)").matches;
+  }
+  function clearColIndicators(){
+    document.querySelectorAll(".column.col-drag-over-before,.column.col-drag-over-after").forEach(function(el){
+      el.classList.remove("col-drag-over-before","col-drag-over-after");
+    });
+  }
+  function updateColumnDropTarget(pt){
+    if(!colDragState) return;
+    clearColIndicators();
+    if(colDragState.ghostEl) colDragState.ghostEl.style.display="none";
+    var el = document.elementFromPoint(pt.x, pt.y);
+    if(colDragState.ghostEl) colDragState.ghostEl.style.display="";
+    if(!el) return;
+    var colEl = el.closest(".column");
+    if(!colEl || !colEl.dataset.themeId || colEl.dataset.themeId===colDragState.themeId) return;
+    var r = colEl.getBoundingClientRect();
+    var before = isMobileLayout() ? (pt.y-r.top)<r.height/2 : (pt.x-r.left)<r.width/2;
+    colEl.classList.add(before ? "col-drag-over-before" : "col-drag-over-after");
+  }
+  function resolveColumnDrop(pt){
+    if(!colDragState) return null;
+    if(colDragState.ghostEl) colDragState.ghostEl.style.display="none";
+    var el = document.elementFromPoint(pt.x, pt.y);
+    if(colDragState.ghostEl) colDragState.ghostEl.style.display="";
+    if(!el) return null;
+    var colEl = el.closest(".column");
+    if(!colEl || !colEl.dataset.themeId || colEl.dataset.themeId===colDragState.themeId) return null;
+    var r = colEl.getBoundingClientRect();
+    var before = isMobileLayout() ? (pt.y-r.top)<r.height/2 : (pt.x-r.left)<r.width/2;
+    return {targetId: colEl.dataset.themeId, insertAfter: !before};
+  }
+  function colAutoScrollTick(){
+    if(!colDragState) return;
+    var pt = colDragState.lastPt;
+    if(pt){
+      var vh = window.innerHeight, EDGE=80, MAX_SPEED=16;
+      if(pt.y < EDGE){ window.scrollBy(0, -MAX_SPEED*(1-pt.y/EDGE)); }
+      else if(pt.y > vh-EDGE){ window.scrollBy(0, MAX_SPEED*(1-(vh-pt.y)/EDGE)); }
+    }
+    colDragState.rafId = requestAnimationFrame(colAutoScrollTick);
+  }
+  function beginColumnDrag(col, themeId, boardId, pt){
+    var r = col.getBoundingClientRect();
+    var ghost = col.cloneNode(true);
+    ghost.className = col.className+" column-ghost";
+    ghost.style.position = "fixed";
+    ghost.style.left = r.left+"px";
+    ghost.style.top = r.top+"px";
+    ghost.style.width = r.width+"px";
+    ghost.style.margin = "0";
+    document.body.appendChild(ghost);
+    colDragState = {
+      themeId: themeId,
+      boardId: boardId,
+      ghostEl: ghost,
+      offsetX: pt.x-r.left,
+      offsetY: pt.y-r.top,
+      lastPt: pt
+    };
+    var myColDragState = colDragState;
+    col.classList.add("col-dragging");
+    document.documentElement.classList.add("dnd-active");
+    colDragState.rafId = requestAnimationFrame(colAutoScrollTick);
+    colDragState.safetyTimer = setTimeout(function(){
+      if(colDragState===myColDragState){ endColumnDrag(col, myColDragState.lastPt, false); }
+    }, 4000);
+    if(window.navigator && window.navigator.vibrate){ window.navigator.vibrate(12); }
+  }
+  function moveColumnGhostTo(pt){
+    if(!colDragState) return;
+    colDragState.lastPt = pt;
+    colDragState.ghostEl.style.left = (pt.x-colDragState.offsetX)+"px";
+    colDragState.ghostEl.style.top = (pt.y-colDragState.offsetY)+"px";
+  }
+  function endColumnDrag(col, pt, commit){
+    if(commit && colDragState){
+      var result = resolveColumnDrop(pt);
+      if(result){ reorderTheme(colDragState.themeId, colDragState.boardId, result.targetId, result.insertAfter); }
+    }
+    if(colDragState && colDragState.rafId){ cancelAnimationFrame(colDragState.rafId); }
+    if(colDragState && colDragState.safetyTimer){ clearTimeout(colDragState.safetyTimer); }
+    if(colDragState && colDragState.ghostEl && colDragState.ghostEl.parentNode){
+      colDragState.ghostEl.parentNode.removeChild(colDragState.ghostEl);
+    }
+    col.classList.remove("col-dragging");
+    document.querySelectorAll(".column.col-dragging").forEach(function(el){ el.classList.remove("col-dragging"); });
+    document.documentElement.classList.remove("dnd-active");
+    clearColIndicators();
+    colDragState = null;
+    applyPendingRemoteIfIdle();
+  }
+  function attachColumnDragHandle(header, col, themeId, boardId, onTap){
+    var pointerId=null, startPt=null, dragging=false, longPressTimer=null;
+    var LONG_PRESS_MS=260, TOL=10, THRESH=6;
+    function clearLP(){ if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer=null; } }
+    function startDragging(pt){ dragging=true; beginColumnDrag(col, themeId, boardId, pt); }
+    function onMove(e){
+      if(e.pointerId!==undefined && e.pointerId!==pointerId) return;
+      if(dragging && !colDragState){ dragging=false; window.removeEventListener("pointermove",onMove); window.removeEventListener("pointerup",onUp); window.removeEventListener("pointercancel",onCancel); return; }
+      if(dragging && e.buttons===0){ onUp(e); return; }
+      var pt = pointFromEvent(e);
+      if(!dragging){
+        if(longPressTimer){
+          if(Math.abs(pt.x-startPt.x)>TOL || Math.abs(pt.y-startPt.y)>TOL){ clearLP(); }
+          return;
+        }
+        if(Math.abs(pt.x-startPt.x)<THRESH && Math.abs(pt.y-startPt.y)<THRESH) return;
+        startDragging(startPt);
+      }
+      e.preventDefault();
+      moveColumnGhostTo(pt);
+      updateColumnDropTarget(pt);
+    }
+    function onUp(e){
+      clearLP();
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+      if(dragging){ endColumnDrag(col, pointFromEvent(e), true); }
+      else { onTap(); }
+      dragging=false; pointerId=null;
+    }
+    function onCancel(){
+      clearLP();
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+      if(dragging){ endColumnDrag(col, startPt, false); }
+      dragging=false; pointerId=null;
+    }
+    header.addEventListener("pointerdown", function(e){
+      if(e.pointerType==="mouse" && e.button!==0) return;
+      if(e.target.closest("button")) return;
+      var isTouch = e.pointerType==="touch";
+      pointerId = e.pointerId;
+      startPt = pointFromEvent(e);
+      dragging = false;
+      try{ header.setPointerCapture(pointerId); }catch(err){}
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+      window.addEventListener("pointercancel", onCancel);
+      if(isTouch){
+        longPressTimer = setTimeout(function(){ longPressTimer=null; startDragging(startPt); }, LONG_PRESS_MS);
+      }
+    });
+  }
+
+  function attachColumnHandleDrag(handle, col, themeId, boardId){
+    var pointerId=null, startPt=null, dragging=false;
+    var THRESH=4;
+    function onMove(e){
+      if(e.pointerId!==undefined && e.pointerId!==pointerId) return;
+      if(dragging && !colDragState){ dragging=false; window.removeEventListener("pointermove",onMove); window.removeEventListener("pointerup",onUp); window.removeEventListener("pointercancel",onCancel); return; }
+      if(dragging && e.buttons===0){ onUp(e); return; }
+      var pt = pointFromEvent(e);
+      if(!dragging){
+        if(Math.abs(pt.x-startPt.x)<THRESH && Math.abs(pt.y-startPt.y)<THRESH) return;
+        dragging = true;
+        beginColumnDrag(col, themeId, boardId, startPt);
+      }
+      e.preventDefault();
+      moveColumnGhostTo(pt);
+      updateColumnDropTarget(pt);
+    }
+    function onUp(e){
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+      if(dragging){ endColumnDrag(col, pointFromEvent(e), true); }
+      dragging=false; pointerId=null;
+    }
+    function onCancel(){
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+      if(dragging){ endColumnDrag(col, startPt, false); }
+      dragging=false; pointerId=null;
+    }
+    handle.addEventListener("pointerdown", function(e){
+      if(e.pointerType==="mouse" && e.button!==0) return;
+      e.preventDefault();
+      pointerId = e.pointerId;
+      startPt = pointFromEvent(e);
+      dragging = false;
+      try{ handle.setPointerCapture(pointerId); }catch(err){}
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+      window.addEventListener("pointercancel", onCancel);
+    });
+  }
+
+  function renderColumn(boardId, themeId, label, hue, isDeletable){
+    var col = document.createElement("div");
+    var collapseKey = boardId+"::"+(themeId||"");
+    var collapsed = !!collapsedThemes[collapseKey];
+    col.className = "column"+(collapsed?" collapsed":"");
+    col.dataset.boardId = boardId;
+    col.dataset.themeId = themeId || "";
+
+    if(isDeletable){
+      var handle = document.createElement("div");
+      handle.className = "col-handle";
+      handle.title = "ドラッグして移動";
+      handle.innerHTML = "<span></span><span></span>";
+      attachColumnHandleDrag(handle, col, themeId, boardId);
+      col.appendChild(handle);
+    }
+
+    var header = document.createElement("div");
+    header.className = "column-header";
+    header.innerHTML =
+      '<span class="chevron">▾</span>'+
+      '<span class="dot" style="background:'+(hue===null?"var(--ink-faint)":"var(--theme-"+(hue%THEME_HUES)+")")+'"></span>'+
+      '<span class="name">'+escapeHtml(label)+'</span>'+
+      '<span class="count">'+notesForTheme(boardId, themeId).length+'</span>';
+    var toggleCollapse = function(){
+      collapsedThemes[collapseKey] = !collapsed;
+      render();
+    };
+    if(isDeletable){
+      attachColumnDragHandle(header, col, themeId, boardId, toggleCollapse);
+    }else{
+      header.addEventListener("click", toggleCollapse);
+    }
+    var reportBtn = document.createElement("button");
+    reportBtn.type="button"; reportBtn.className="col-report-btn"; reportBtn.textContent="📄";
+    reportBtn.title="このテーマのレポートを作成";
+    reportBtn.addEventListener("click", function(e){
+      e.stopPropagation();
+      showReportModal(buildThemeReport(boardId, themeId, label), label+" のレポート");
+    });
+    header.appendChild(reportBtn);
+    if(isDeletable){
+      var themeList = themesForBoard(boardId);
+      var themeIdx = themeList.findIndex(function(t){ return t.id===themeId; });
+      var upBtn = document.createElement("button");
+      upBtn.type="button"; upBtn.className="col-move-btn"; upBtn.textContent="▲";
+      upBtn.title="前へ移動";
+      upBtn.disabled = themeIdx<=0;
+      upBtn.addEventListener("click", function(){ moveThemeStep(boardId, themeId, -1); });
+      header.appendChild(upBtn);
+
+      var downBtn = document.createElement("button");
+      downBtn.type="button"; downBtn.className="col-move-btn"; downBtn.textContent="▼";
+      downBtn.title="次へ移動";
+      downBtn.disabled = themeIdx>=themeList.length-1;
+      downBtn.addEventListener("click", function(){ moveThemeStep(boardId, themeId, 1); });
+      header.appendChild(downBtn);
+
+      var delBtn = document.createElement("button");
+      delBtn.type="button"; delBtn.className="col-del";
+      var confirmMode = pendingDeleteTheme===themeId;
+      delBtn.textContent = confirmMode ? "本当に?" : "✕";
+      delBtn.title = "テーマを削除";
+      delBtn.addEventListener("click", function(e){
+        e.stopPropagation();
+        if(pendingDeleteTheme===themeId){
+          deleteTheme(themeId);
+          pendingDeleteTheme = null;
+        }else{
+          pendingDeleteTheme = themeId;
+          render();
+          setTimeout(function(){ if(pendingDeleteTheme===themeId){ pendingDeleteTheme=null; render(); } }, 3000);
+        }
+      });
+      header.appendChild(delBtn);
+    }
+    col.appendChild(header);
+
+    var list = document.createElement("div");
+    list.className = "card-list";
+    var notes = notesForTheme(boardId, themeId);
+    if(!notes.length){
+      var empty = document.createElement("div");
+      empty.className = "column-empty";
+      empty.textContent = notesInBoard(boardId).some(function(n){return (n.themeId||null)===themeId;}) ? "該当する付箋がありません" : "付箋をここにドラッグ";
+      list.appendChild(empty);
+    }else{
+      notes.forEach(function(n){ list.appendChild(renderNoteCard(n)); });
+    }
+    col.appendChild(list);
+
+    return col;
+  }
+
+  function renderBoardRow(){
+    var row = document.getElementById("boardRow");
+    row.innerHTML = "";
+    if(!activeBoardId){ return; }
+
+    row.appendChild(renderColumn(activeBoardId, null, "未整理", null, false));
+    themesForBoard(activeBoardId).forEach(function(t){
+      row.appendChild(renderColumn(activeBoardId, t.id, t.name, t.hue, true));
+    });
+
+    var addCol = document.createElement("div");
+    addCol.className = "add-column";
+    addCol.innerHTML =
+      '<input type="text" id="newThemeInput" placeholder="新しいテーマ名" maxlength="20" autocomplete="off">'+
+      '<button type="button" id="addThemeBtn">+ テーマを追加</button>';
+    row.appendChild(addCol);
+
+    function createTheme(){
+      var input = document.getElementById("newThemeInput");
+      var name = input.value.trim();
+      if(!name){ input.focus(); return; }
+      var count = themesForBoard(activeBoardId).length;
+      state.themes.push({id:uid(), boardId:activeBoardId, name:name, hue:count, order:count});
+      save();
+      render();
+    }
+    document.getElementById("addThemeBtn").addEventListener("click", createTheme);
+    document.getElementById("newThemeInput").addEventListener("keydown", function(e){
+      if(e.key==="Enter"){ e.preventDefault(); createTheme(); }
+    });
+  }
+
+  function render(){
+    renderBoardTabs();
+    renderTagFilter();
+    renderBoardRow();
+  }
+
+  var composerColor = COLORS[0];
+  function initComposer(){
+    var sw = document.getElementById("composerSwatches");
+    COLORS.forEach(function(c){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "composer-swatch note-"+c+(c===composerColor?" selected":"");
+      b.title = c;
+      b.addEventListener("click", function(){
+        composerColor = c;
+        Array.from(sw.children).forEach(function(el){ el.classList.remove("selected"); });
+        b.classList.add("selected");
+      });
+      sw.appendChild(b);
+    });
+  }
+
+  document.getElementById("stickBtn").addEventListener("click", function(){
+    var input = document.getElementById("noteInput");
+    var text = input.value.trim();
+    if(!text || !activeBoardId) return;
+    var tagsInput = document.getElementById("composerTagsInput");
+    var tags = tagsInput.value.split(",").map(function(t){ return t.trim(); }).filter(Boolean);
+    var orders = groupOrders(activeBoardId, null, null);
+    var order = orders.length ? Math.min.apply(null, orders)-1 : 0;
+    state.notes.push({ id:uid(), text:text, color:composerColor, boardId:activeBoardId, themeId:null, tags:tags, order:order, createdAt:Date.now() });
+    input.value = "";
+    tagsInput.value = "";
+    save(); render();
+    input.focus();
+  });
+  document.getElementById("noteInput").addEventListener("keydown", function(e){
+    if(e.key==="Enter"){ e.preventDefault(); document.getElementById("stickBtn").click(); }
+  });
+  document.getElementById("searchInput").addEventListener("input", function(e){
+    searchTerm = e.target.value;
+    renderBoardRow();
+  });
+
+  document.getElementById("boardReportBtn").addEventListener("click", function(){
+    if(!activeBoardId) return;
+    var board = state.boards.find(function(b){ return b.id===activeBoardId; });
+    showReportModal(buildBoardReport(activeBoardId), (board?board.name:"ボード")+" のレポート");
+  });
+  document.getElementById("reportClose").addEventListener("click", hideReportModal);
+  document.getElementById("reportOverlay").addEventListener("click", function(e){
+    if(e.target.id==="reportOverlay") hideReportModal();
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.key==="Escape" && !document.getElementById("reportOverlay").hidden) hideReportModal();
+  });
+  document.getElementById("reportCopyBtn").addEventListener("click", function(){
+    var ta = document.getElementById("reportText");
+    var status = document.getElementById("reportCopyStatus");
+    function showCopied(){
+      status.textContent = "コピーしました";
+      setTimeout(function(){ status.textContent = ""; }, 2000);
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(ta.value).then(showCopied).catch(function(){
+        ta.focus(); ta.select();
+        try{ document.execCommand("copy"); showCopied(); }catch(e){}
+      });
+    } else {
+      ta.focus(); ta.select();
+      try{ document.execCommand("copy"); showCopied(); }catch(e){}
+    }
+  });
+
+  function setStorageStatus(mode){
+    var label = document.getElementById("storageLabel");
+    var dot = document.getElementById("storageDot");
+    if(!label || !dot) return;
+    if(mode==="synced"){ label.textContent = "すべての端末で同期されます"; dot.style.background = "var(--accent)"; }
+    else if(mode==="connecting"){ label.textContent = "同期を確認中…"; dot.style.background = "var(--ink-faint)"; }
+    else { label.textContent = "この端末に保存されます"; dot.style.background = "var(--ink-faint)"; }
+  }
+
+  var pendingRemote = null;
+  function applyRemoteState(remote){
+    var remoteJSON = JSON.stringify(remote);
+    if(remoteJSON===lastSyncedJSON) return;
+    state = remote;
+    lastSyncedJSON = remoteJSON;
+    try{ localStorage.setItem(STORAGE_KEY, remoteJSON); }catch(e){}
+    ensureOrder();
+    ensureThemeOrder();
+    if(!activeBoardId || !state.boards.some(function(b){ return b.id===activeBoardId; })){
+      activeBoardId = state.boards.length ? state.boards[0].id : null;
+    }
+    render();
+  }
+  function applyPendingRemoteIfIdle(){
+    if(dragState || colDragState || !pendingRemote) return;
+    var r = pendingRemote;
+    pendingRemote = null;
+    applyRemoteState(r);
+  }
+
+  function initSync(){
+    if(!window.claude || typeof window.claude.use!=="function"){ setStorageStatus("local"); return; }
+    setStorageStatus("connecting");
+    window.claude.use("db").then(function(db){
+      if(!db){ setStorageStatus("local"); return; }
+      dbRef = db.doc("board/state");
+      dbRef.onSnapshot(function(snap){
+        if(!snap.exists){
+          setStorageStatus("synced");
+          dbRef.set(state).catch(function(){});
+          return;
+        }
+        var remote = snap.data();
+        if(!remote || !Array.isArray(remote.notes) || !Array.isArray(remote.boards) || !Array.isArray(remote.themes)) return;
+        setStorageStatus("synced");
+        if(dragState || colDragState){ pendingRemote = remote; return; }
+        applyRemoteState(remote);
+      }, function(){
+        dbRef = null;
+        setStorageStatus("local");
+      });
+    }).catch(function(){ setStorageStatus("local"); });
+  }
+
+  // ---- Firebase sync (standalone-file distribution) ----
+  var firebaseConfig = {
+    apiKey: "AIzaSyAu7RsSOjs98SKAVu4grr9ksb6dSBE7EuI",
+    authDomain: "fusenmemo-b0d08.firebaseapp.com",
+    projectId: "fusenmemo-b0d08",
+    storageBucket: "fusenmemo-b0d08.firebasestorage.app",
+    messagingSenderId: "38423816942",
+    appId: "1:38423816942:web:fc90c04617e85781d961ff"
+  };
+  var SYNC_CODE_KEY = "stickyboard.synccode";
+  var fbUnsub = null;
+
+  function randomSyncCode(){
+    var chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+    var s = "";
+    for(var i=0;i<8;i++){ s += chars[Math.floor(Math.random()*chars.length)]; }
+    return s;
+  }
+  function getSyncCode(){
+    var code = null;
+    try{ code = localStorage.getItem(SYNC_CODE_KEY); }catch(e){}
+    if(!code){
+      code = randomSyncCode();
+      try{ localStorage.setItem(SYNC_CODE_KEY, code); }catch(e){}
+    }
+    return code;
+  }
+  function setSyncCode(code){
+    try{ localStorage.setItem(SYNC_CODE_KEY, code); }catch(e){}
+  }
+  function fbDocRef(){
+    return fbDb.collection("boards").doc(getSyncCode());
+  }
+  function updateSyncCodeLabel(){
+    var label = document.getElementById("syncCodeLabel");
+    if(label) label.textContent = getSyncCode();
+  }
+
+  function subscribeFirebaseSync(){
+    if(!fbDb) return;
+    if(fbUnsub){ fbUnsub(); fbUnsub = null; }
+    setStorageStatus("connecting");
+    fbUnsub = fbDocRef().onSnapshot(function(snap){
+      if(!snap.exists){
+        setStorageStatus("synced");
+        fbDocRef().set(state).catch(function(){});
+        return;
+      }
+      var remote = snap.data();
+      if(!remote || !Array.isArray(remote.notes) || !Array.isArray(remote.boards) || !Array.isArray(remote.themes)) return;
+      setStorageStatus("synced");
+      if(dragState || colDragState){ pendingRemote = remote; return; }
+      applyRemoteState(remote);
+    }, function(){
+      fbDb = null;
+      setStorageStatus("local");
+    });
+  }
+
+  function initFirebaseSync(){
+    if(typeof firebase==="undefined") return;
+    if(!firebaseConfig.apiKey || firebaseConfig.apiKey.indexOf("PASTE_")===0) return;
+    try{
+      firebase.initializeApp(firebaseConfig);
+      fbDb = firebase.firestore();
+    }catch(e){ return; }
+    updateSyncCodeLabel();
+    subscribeFirebaseSync();
+  }
+
+  document.getElementById("syncCodeToggle").addEventListener("click", function(){
+    var panel = document.getElementById("syncCodePanel");
+    var input = document.getElementById("syncCodeInput");
+    panel.hidden = !panel.hidden;
+    if(!panel.hidden) input.value = getSyncCode();
+  });
+  document.getElementById("syncCodeApply").addEventListener("click", function(){
+    var input = document.getElementById("syncCodeInput");
+    var code = input.value.trim().toUpperCase().replace(/[^A-Z0-9]/g,"");
+    if(!code) return;
+    setSyncCode(code);
+    updateSyncCodeLabel();
+    document.getElementById("syncCodePanel").hidden = true;
+    if(fbDb){ subscribeFirebaseSync(); } else { initFirebaseSync(); }
+  });
+  document.addEventListener("click", function(e){
+    var wrap = document.querySelector(".sync-code-wrap");
+    var panel = document.getElementById("syncCodePanel");
+    if(!panel || panel.hidden) return;
+    if(!wrap.contains(e.target)) panel.hidden = true;
+  });
+
+  document.addEventListener("pointerup", function(e){
+    if(dragState){ endDrag(document.body, pointFromEvent(e), true); }
+    if(colDragState){ endColumnDrag(document.body, pointFromEvent(e), true); }
+  }, true);
+  document.addEventListener("pointercancel", function(e){
+    if(dragState){ endDrag(document.body, dragState.lastPt, false); }
+    if(colDragState){ endColumnDrag(document.body, colDragState.lastPt, false); }
+  }, true);
+  document.documentElement.addEventListener("mouseleave", function(){
+    if(dragState){ endDrag(document.body, dragState.lastPt, false); }
+    if(colDragState){ endColumnDrag(document.body, colDragState.lastPt, false); }
+  });
+  document.documentElement.addEventListener("mouseenter", function(e){
+    if(e.buttons!==0) return;
+    if(dragState){ endDrag(document.body, dragState.lastPt, false); }
+    if(colDragState){ endColumnDrag(document.body, colDragState.lastPt, false); }
+  });
+  window.addEventListener("blur", function(){
+    if(dragState){ endDrag(document.body, dragState.lastPt, false); }
+    if(colDragState){ endColumnDrag(document.body, colDragState.lastPt, false); }
+  });
+
+  initComposer();
+  render();
+  updateSyncCodeLabel();
+  initSync();
+  initFirebaseSync();
+})();
+</script>
